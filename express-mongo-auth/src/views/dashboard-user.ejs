@@ -1,0 +1,34 @@
+<%- include('partials/header') %>
+
+<script>
+    const token = sessionStorage.getItem('token');
+    if (!token) window.location.href = '/signIn';
+    const decoded = parseJwt(token);
+    if (!decoded || !decoded.roles.includes('user')) {
+        window.location.href = '/signIn';
+    }
+</script>
+
+<div class="row">
+    <div class="col s12">
+        <div class="glass-container center-align">
+            <h2>Bienvenido, <span id="userName"></span></h2>
+            <i class="material-icons" style="font-size: 5rem; color: var(--primary-color);">dashboard</i>
+            <p class="flow-text text-muted">Este es tu panel de control de usuario. Aquí podrás acceder a tus herramientas.</p>
+            <br>
+            <a href="/profile" class="btn corporate-btn"><i class="material-icons left">person</i>Ver Perfil</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = sessionStorage.getItem('token');
+        const decoded = parseJwt(token);
+        if(decoded) {
+            document.getElementById('userName').innerText = decoded.name;
+        }
+    });
+</script>
+
+<%- include('partials/footer') %>

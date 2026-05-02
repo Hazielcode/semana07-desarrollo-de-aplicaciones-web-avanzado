@@ -1,0 +1,34 @@
+<%- include('partials/header') %>
+
+<script>
+    const token = sessionStorage.getItem('token');
+    if (!token) window.location.href = '/signIn';
+    const decoded = parseJwt(token);
+    if (!decoded || !decoded.roles.includes('slime')) {
+        window.location.href = '/signIn';
+    }
+</script>
+
+<div class="row">
+    <div class="col s12">
+        <div class="glass-container center-align">
+            <h2>¡Hola, Slime <span id="slimeName"></span>!</h2>
+            <img src="/img/slime.png" alt="Happy Slime" width="200">
+            <p class="flow-text">Bienvenido a tu corralito de descanso. Aquí están tus datos y estadísticas.</p>
+            <br>
+            <a href="/profile" class="btn slime-btn"><i class="material-icons left">person</i>Ver Mi Perfil</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const token = sessionStorage.getItem('token');
+        const decoded = parseJwt(token);
+        if(decoded) {
+            document.getElementById('slimeName').innerText = decoded.name;
+        }
+    });
+</script>
+
+<%- include('partials/footer') %>

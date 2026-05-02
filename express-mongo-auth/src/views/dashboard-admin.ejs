@@ -1,0 +1,302 @@
+<%- include('partials/header') %>
+
+<script>
+    const token = sessionStorage.getItem('token');
+    if (!token) window.location.href = '/signIn';
+    const decoded = parseJwt(token);
+    if (!decoded || !decoded.roles.includes('admin')) {
+        window.location.href = '/403';
+    }
+</script>
+
+<div class="row">
+    <div class="col s12">
+        <div class="glass-container">
+            <h2 class="center-align">Panel de Administración</h2>
+            <p class="center-align text-muted">Gestión completa de usuarios (CRUD).</p>
+            
+            <div class="right-align" style="margin-bottom: 20px; display:flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn corporate-btn modal-trigger" href="#userModal" onclick="openCreateModal()">
+                    <i class="material-icons left">person_add</i>Nuevo Usuario
+                </button>
+                <a href="/profile" class="btn secondary-btn"><i class="material-icons left">admin_panel_settings</i>Mi Cuenta</a>
+            </div>
+
+            <table class="striped responsive-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Nombre Completo</th>
+                        <th>Rol</th>
+                        <th>Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr><td colspan="5" class="center-align">Cargando datos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Structure for Create / Edit -->
+<div id="userModal" class="modal modal-fixed-footer">
+    <div class="modal-content">
+        <h4 id="modalTitle">Nuevo Usuario</h4>
+        <form id="crudForm">
+            <input type="hidden" id="crudUserId">
+            <div class="row">
+                <div class="input-field col s12 m6">
+                    <input id="crudName" type="text" required>
+                    <label for="crudName">Nombre</label>
+                </div>
+                <div class="input-field col s12 m6">
+                    <input id="crudLastName" type="text" required>
+                    <label for="crudLastName">Apellido</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12 m6">
+                    <input id="crudEmail" type="email" required>
+                    <label for="crudEmail">Correo Electrónico</label>
+                </div>
+                <div class="input-field col s12 m6">
+                    <input id="crudPassword" type="password">
+                    <label for="crudPassword" id="crudPasswordLabel">Contraseña</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12 m6">
+                    <input id="crudPhone" type="text" required>
+                    <label for="crudPhone">Teléfono</label>
+                </div>
+                <div class="input-field col s12 m6">
+                    <select id="crudRole">
+                        <option value="user" selected>Usuario Normal</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                    <label>Rol</label>
+                </div>
+            </div>
+            <div class="row">
+                 <div class="input-field col s12">
+                    <input id="crudBirthdate" type="date" required>
+                    <label for="crudBirthdate" class="active">Fecha de Nacimiento</label>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-red btn-flat">Cancelar</a>
+        <button type="submit" form="crudForm" class="waves-effect waves-green btn corporate-btn">Guardar</button>
+    </div>
+</div>
+
+<!-- Modal Structure for View Info -->
+<div id="viewModal" class="modal">
+    <div class="modal-content">
+        <h4 id="viewName">Detalles del Usuario</h4>
+        <div class="divider"></div>
+        <div class="row" style="margin-top:20px;">
+            <div class="col s12 m4 center-align">
+                <img id="viewAvatar" src="" class="profile-avatar" style="width: 100px; height: 100px; border: 3px solid var(--primary-color);">
+                <p id="viewRole" style="text-transform: uppercase; font-weight: bold; color: var(--primary-color);"></p>
+            </div>
+            <div class="col s12 m8">
+                <p><strong>Email:</strong> <span id="viewEmail"></span></p>
+                <p><strong>Teléfono:</strong> <span id="viewPhone"></span></p>
+                <p><strong>Nacimiento:</strong> <span id="viewBirthdate"></span></p>
+                <p><strong>Dirección:</strong> <span id="viewAddress"></span></p>
+                <p><strong>Fecha de Registro:</strong> <span id="viewRegistro"></span></p>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#!" class="modal-close waves-effect waves-green btn corporate-btn">Cerrar</a>
+    </div>
+</div>
+
+<script>
+let allUsers = [];
+let isEditing = false;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    M.Modal.init(document.querySelectorAll('.modal'));
+    M.FormSelect.init(document.querySelectorAll('select'));
+    await loadUsers();
+});
+
+async function loadUsers() {
+    try {
+        const response = await fetch('/api/users', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.status === 401 || response.status === 403) {
+            window.location.href = '/403';
+            return;
+        }
+        allUsers = await response.json();
+        renderTable(allUsers);
+    } catch(err) {
+        console.error(err);
+    }
+}
+
+function renderTable(users) {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '';
+    users.forEach(u => {
+        const roles = u.roles.map(r => r.name).join(', ');
+        const date = new Date(u.createdAt).toLocaleDateString();
+        tbody.innerHTML += `
+            <tr>
+                <td>${u.email}</td>
+                <td>${u.name} ${u.lastName || ''}</td>
+                <td><span class="new badge ${roles.includes('admin') ? 'blue darken-2' : 'grey'}" data-badge-caption="${roles}"></span></td>
+                <td>${date}</td>
+                <td>
+                    <button class="btn-small light-blue darken-3" onclick="openViewModal('${u._id}')" title="Ver Info"><i class="material-icons">visibility</i></button>
+                    <button class="btn-small corporate-btn" onclick="openEditModal('${u._id}')" title="Editar"><i class="material-icons">edit</i></button>
+                    <button class="btn-small red darken-2" onclick="deleteUser('${u._id}')" title="Eliminar"><i class="material-icons">delete</i></button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function openCreateModal() {
+    isEditing = false;
+    document.getElementById('modalTitle').innerText = 'Nuevo Usuario';
+    document.getElementById('crudForm').reset();
+    document.getElementById('crudUserId').value = '';
+    document.getElementById('crudPassword').required = true;
+    document.getElementById('crudPasswordLabel').innerText = 'Contraseña (Obligatorio)';
+    M.updateTextFields();
+}
+
+function openViewModal(id) {
+    const user = allUsers.find(u => u._id === id);
+    if(!user) return;
+    
+    document.getElementById('viewName').innerText = `${user.name} ${user.lastName || ''}`;
+    document.getElementById('viewEmail').innerText = user.email;
+    document.getElementById('viewPhone').innerText = user.phoneNumber || 'No registrado';
+    document.getElementById('viewAddress').innerText = user.address || 'No registrado';
+    document.getElementById('viewRole').innerText = user.roles.map(r=>r.name).join(', ');
+    
+    let bdate = 'No registrado';
+    if(user.birthdate) bdate = new Date(user.birthdate).toLocaleDateString();
+    document.getElementById('viewBirthdate').innerText = bdate;
+    document.getElementById('viewRegistro').innerText = new Date(user.createdAt).toLocaleDateString();
+    
+    const defaultAvatar = 'https://ui-avatars.com/api/?name=' + user.name + '&background=1565C0&color=fff&size=120';
+    document.getElementById('viewAvatar').src = user.url_profile || defaultAvatar;
+
+    M.Modal.getInstance(document.getElementById('viewModal')).open();
+}
+
+function openEditModal(id) {
+    isEditing = true;
+    const user = allUsers.find(u => u._id === id);
+    if(!user) return;
+
+    document.getElementById('modalTitle').innerText = 'Editar Usuario';
+    document.getElementById('crudUserId').value = user._id;
+    document.getElementById('crudName').value = user.name;
+    document.getElementById('crudLastName').value = user.lastName || '';
+    document.getElementById('crudEmail').value = user.email;
+    document.getElementById('crudPhone').value = user.phoneNumber || '';
+    
+    let bdate = '';
+    if (user.birthdate) bdate = new Date(user.birthdate).toISOString().split('T')[0];
+    document.getElementById('crudBirthdate').value = bdate;
+
+    const roleSelect = document.getElementById('crudRole');
+    roleSelect.value = user.roles.map(r=>r.name).includes('admin') ? 'admin' : 'user';
+    M.FormSelect.init(roleSelect);
+
+    document.getElementById('crudPassword').required = false;
+    document.getElementById('crudPasswordLabel').innerText = 'Contraseña (Opcional, dejar en blanco para mantener)';
+    
+    M.updateTextFields();
+    const instance = M.Modal.getInstance(document.getElementById('userModal'));
+    instance.open();
+}
+
+document.getElementById('crudForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const id = document.getElementById('crudUserId').value;
+    const payload = {
+        name: document.getElementById('crudName').value,
+        lastName: document.getElementById('crudLastName').value,
+        email: document.getElementById('crudEmail').value,
+        phoneNumber: document.getElementById('crudPhone').value,
+        birthdate: document.getElementById('crudBirthdate').value,
+        roles: [document.getElementById('crudRole').value]
+    };
+
+    const pass = document.getElementById('crudPassword').value;
+    if (pass) payload.password = pass;
+
+    try {
+        let url = isEditing ? `/api/users/${id}` : '/api/auth/signUp';
+        let method = isEditing ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        const data = await response.json();
+
+        if (response.ok || response.status === 200 || response.status === 201) {
+            M.Modal.getInstance(document.getElementById('userModal')).close();
+            Swal.fire('Éxito', isEditing ? 'Usuario actualizado correctamente' : 'Usuario creado correctamente', 'success');
+            loadUsers();
+        } else {
+            Swal.fire('Error', data.message || 'No se pudo guardar la información', 'error');
+        }
+    } catch(err) {
+        Swal.fire('Error', 'Problema de conexión con el servidor', 'error');
+    }
+});
+
+async function deleteUser(id) {
+    const result = await Swal.fire({
+        title: '¿Eliminar usuario?',
+        text: "Esta acción es permanente y no se puede deshacer.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#607d8b',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const response = await fetch(`/api/users/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok || response.status === 204) {
+                Swal.fire('Eliminado', 'El usuario ha sido eliminado.', 'success');
+                loadUsers();
+            } else {
+                Swal.fire('Error', 'No se pudo eliminar al usuario', 'error');
+            }
+        } catch(err) {
+            Swal.fire('Error', 'Problema de conexión', 'error');
+        }
+    }
+}
+</script>
+
+<%- include('partials/footer') %>

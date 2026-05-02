@@ -1,0 +1,75 @@
+<%- include('partials/header') %>
+
+<script>
+    const token = sessionStorage.getItem('token');
+    if (!token) window.location.href = '/signIn';
+    const decoded = parseJwt(token);
+    if (!decoded || !decoded.roles.includes('granjero')) {
+        window.location.href = '/403';
+    }
+</script>
+
+<div class="row">
+    <div class="col s12">
+        <div class="glass-container">
+            <h2 class="center-align">Dashboard del Granjero</h2>
+            <p class="center-align">Administración de todos los slimes del rancho.</p>
+            
+            <div class="right-align" style="margin-bottom: 20px;">
+                <a href="/profile" class="btn plort-btn"><i class="material-icons left">person</i>Mi Perfil</a>
+            </div>
+
+            <table class="striped responsive-table">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Nombre</th>
+                        <th>Rol</th>
+                        <th>Registrado el</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr><td colspan="5" class="center-align">Cargando slimes...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('/api/users', {
+            headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            window.location.href = '/403';
+            return;
+        }
+
+        const users = await response.json();
+        const tbody = document.getElementById('usersTableBody');
+        tbody.innerHTML = '';
+
+        users.forEach(u => {
+            const roles = u.roles.map(r => r.name).join(', ');
+            const date = new Date(u.createdAt).toLocaleDateString();
+            tbody.innerHTML += `
+                <tr>
+                    <td>${u.email}</td>
+                    <td>${u.name} ${u.lastName || ''}</td>
+                    <td><span class="new badge ${roles.includes('granjero') ? 'blue' : 'pink'}" data-badge-caption="${roles}"></span></td>
+                    <td>${date}</td>
+                    <td><button class="btn-small slime-btn" onclick="alert('Ver detalles de ${u.name}')">Ver</button></td>
+                </tr>
+            `;
+        });
+    } catch(err) {
+        console.error(err);
+    }
+});
+</script>
+
+<%- include('partials/footer') %>

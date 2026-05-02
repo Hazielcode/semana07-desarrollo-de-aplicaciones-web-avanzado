@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Portal Corporativo</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Materialize Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    
+    <!-- Navbar -->
+    <nav>
+        <div class="nav-wrapper container">
+            <a href="#" class="brand-logo"><i class="material-icons">business</i>PortalCorp</a>
+            <ul id="nav-mobile" class="right hide-on-med-and-down">
+                <li class="auth-hide"><a href="/signIn">Acceder</a></li>
+                <li class="auth-hide"><a href="/signUp">Registro</a></li>
+                <li class="auth-show" style="display:none;"><a href="/profile">Mi Perfil</a></li>
+                <li class="auth-show" style="display:none;"><a href="#" id="logoutBtn">Cerrar Sesión</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container">

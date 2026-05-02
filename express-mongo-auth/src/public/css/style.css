@@ -1,0 +1,173 @@
+/* Corporate Theme Variables */
+:root {
+  --primary-color: #1565C0; /* Dark Blue */
+  --primary-dark: #0D47A1;
+  --secondary-color: #ECEFF1; /* Light Gray */
+  --text-dark: #263238;
+  --text-light: #546E7A;
+  --white: #ffffff;
+  --danger: #D32F2F;
+  --success: #2E7D32;
+  --bg-color: #F4F6F8;
+  --border-radius: 8px;
+}
+
+body {
+  font-family: 'Inter', 'Roboto', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-dark);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Containers */
+.glass-container {
+  background: var(--white);
+  border: 1px solid #E0E0E0;
+  border-radius: var(--border-radius);
+  padding: 40px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-top: 50px;
+}
+
+/* Titles */
+h1, h2, h3, h4, h5 {
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+/* Inputs */
+input[type=text]:focus, input[type=email]:focus, input[type=password]:focus, input[type=date]:focus {
+  border-bottom: 2px solid var(--primary-color) !important;
+  box-shadow: 0 1px 0 0 var(--primary-color) !important;
+}
+
+input[type=text]:focus + label, input[type=email]:focus + label, input[type=password]:focus + label, input[type=date]:focus + label {
+  color: var(--primary-color) !important;
+}
+
+/* Buttons */
+.btn.corporate-btn {
+  background-color: var(--primary-color);
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+
+.btn.corporate-btn:hover {
+  background-color: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(13, 71, 161, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn.corporate-btn:disabled {
+  background-color: #B0BEC5 !important;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn.secondary-btn {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: var(--border-radius);
+  text-transform: none;
+  font-weight: 500;
+  box-shadow: none;
+  transition: all 0.2s ease;
+}
+
+.btn.secondary-btn:hover {
+  background-color: rgba(21, 101, 192, 0.05);
+  transform: translateY(-1px);
+}
+
+/* Password Requirements Animation */
+.req-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.3s ease;
+}
+.req-item i {
+  transition: all 0.3s ease;
+}
+
+/* Utilities */
+.full-width { width: 100%; }
+.text-danger { color: var(--danger); }
+.text-muted { color: #607d8b; }
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  margin-bottom: 15px;
+  border: 4px solid white;
+}
+.text-success { color: var(--success); }
+
+
+/* Navbar */
+nav {
+  background-color: var(--white) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+nav .brand-logo, nav ul a {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+nav .brand-logo i {
+  color: var(--primary-color);
+}
+
+nav ul a:hover {
+  background-color: transparent;
+  color: var(--primary-dark);
+}
+
+/* Table */
+table {
+  background: white;
+  border-radius: var(--border-radius);
+  border: 1px solid #E0E0E0;
+}
+
+thead {
+  background-color: var(--secondary-color);
+  color: var(--text-dark);
+}
+
+th, td {
+  padding: 15px !important;
+}
+
+/* Utilities */
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 3px solid var(--secondary-color);
+  object-fit: cover;
+  margin-bottom: 20px;
+}
+
+.material-icons.large-icon {
+  font-size: 6rem;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+.text-muted {
+  color: var(--text-light);
+}

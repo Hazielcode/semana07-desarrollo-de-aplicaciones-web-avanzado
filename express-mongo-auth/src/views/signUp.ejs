@@ -1,0 +1,174 @@
+<%- include('partials/header') %>
+
+<div class="row">
+    <div class="col s12 m10 offset-m1 l8 offset-l2">
+        <div class="glass-container">
+            <h3 class="center-align">Registro de Usuario</h3>
+            <p class="center-align text-muted">Crea una nueva cuenta corporativa</p>
+            <br>
+            <form id="signUpForm">
+                <div class="row">
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">person</i>
+                        <input id="name" type="text" required>
+                        <label for="name">Nombre</label>
+                    </div>
+                    <div class="input-field col s12 m6">
+                        <input id="lastName" type="text" required>
+                        <label for="lastName">Apellido</label>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">phone</i>
+                        <input id="phoneNumber" type="text" required>
+                        <label for="phoneNumber">Teléfono</label>
+                    </div>
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">calendar_today</i>
+                        <input id="birthdate" type="date" required>
+                        <label for="birthdate">Fecha de Nacimiento</label>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">location_on</i>
+                        <input id="address" type="text">
+                        <label for="address">Dirección (Opcional)</label>
+                    </div>
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">link</i>
+                        <input id="url_profile" type="url">
+                        <label for="url_profile">URL Foto Perfil (Opcional)</label>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">email</i>
+                        <input id="email" type="email" required>
+                        <label for="email">Correo Electrónico</label>
+                    </div>
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">lock</i>
+                        <input id="password" type="password" required>
+                        <label for="password">Contraseña</label>
+                        
+                        <!-- Password Validation Checklist -->
+                        <div class="password-requirements" style="font-size: 0.85rem; margin-top: -10px; margin-bottom: 20px; padding-left: 3rem;">
+                            <div id="req-length" class="req-item text-danger"><i class="material-icons tiny">cancel</i> Mínimo 8 caracteres</div>
+                            <div id="req-upper" class="req-item text-danger"><i class="material-icons tiny">cancel</i> 1 Letra mayúscula</div>
+                            <div id="req-number" class="req-item text-danger"><i class="material-icons tiny">cancel</i> 1 Número</div>
+                            <div id="req-special" class="req-item text-danger"><i class="material-icons tiny">cancel</i> 1 Carácter especial (#$%&*@)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="center-align">
+                    <button class="btn corporate-btn" type="submit" id="submitBtn" disabled>Registrar Cuenta
+                        <i class="material-icons right">check_circle</i>
+                    </button>
+                </div>
+            </form>
+            <div class="center-align" style="margin-top:20px;">
+                <p>¿Ya tienes una cuenta? <a href="/signIn">Inicia Sesión</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Password Validation Logic
+const passwordInput = document.getElementById('password');
+const submitBtn = document.getElementById('submitBtn');
+
+const reqLength = document.getElementById('req-length');
+const reqUpper = document.getElementById('req-upper');
+const reqNumber = document.getElementById('req-number');
+const reqSpecial = document.getElementById('req-special');
+
+function updateReqStatus(element, isValid) {
+    const icon = element.querySelector('i');
+    if (isValid) {
+        element.classList.remove('text-danger');
+        element.classList.add('text-success');
+        icon.innerText = 'check_circle';
+        element.style.color = 'var(--success)';
+    } else {
+        element.classList.remove('text-success');
+        element.classList.add('text-danger');
+        icon.innerText = 'cancel';
+        element.style.color = 'var(--danger)';
+    }
+}
+
+passwordInput.addEventListener('input', (e) => {
+    const val = e.target.value;
+    
+    const hasLength = val.length >= 8;
+    const hasUpper = /[A-Z]/.test(val);
+    const hasNumber = /[0-9]/.test(val);
+    const hasSpecial = /[#$%&*@]/.test(val);
+
+    updateReqStatus(reqLength, hasLength);
+    updateReqStatus(reqUpper, hasUpper);
+    updateReqStatus(reqNumber, hasNumber);
+    updateReqStatus(reqSpecial, hasSpecial);
+
+    if (hasLength && hasUpper && hasNumber && hasSpecial) {
+        submitBtn.disabled = false;
+    } else {
+        submitBtn.disabled = true;
+    }
+});
+
+document.getElementById('signUpForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    submitBtn.innerHTML = 'Procesando... <i class="material-icons right">hourglass_empty</i>';
+    submitBtn.disabled = true;
+
+    const payload = {
+        name: document.getElementById('name').value,
+        lastName: document.getElementById('lastName').value,
+        phoneNumber: document.getElementById('phoneNumber').value,
+        birthdate: document.getElementById('birthdate').value,
+        address: document.getElementById('address').value,
+        url_profile: document.getElementById('url_profile').value,
+        email: document.getElementById('email').value,
+        password: passwordInput.value,
+        roles: ['user']
+    };
+
+    try {
+        const response = await fetch('/api/auth/signUp', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire({
+                title: 'Registro Exitoso',
+                text: 'La cuenta ha sido creada correctamente',
+                icon: 'success'
+            }).then(() => {
+                window.location.href = '/signIn';
+            });
+        } else {
+            Swal.fire('Atención', data.message || 'No se pudo completar el registro', 'warning');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = 'Registrar Cuenta <i class="material-icons right">check_circle</i>';
+        }
+    } catch(err) {
+        Swal.fire('Error', 'Hubo un problema con la conexión al servidor', 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Registrar Cuenta <i class="material-icons right">check_circle</i>';
+    }
+});
+</script>
+
+<%- include('partials/footer') %>

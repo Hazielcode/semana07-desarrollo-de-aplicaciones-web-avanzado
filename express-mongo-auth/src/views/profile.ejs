@@ -1,0 +1,155 @@
+<%- include('partials/header') %>
+
+<script>
+    const token = sessionStorage.getItem('token');
+    if (!token) window.location.href = '/signIn';
+</script>
+
+<div class="row">
+    <div class="col s12 m8 offset-m2">
+        <div class="glass-container">
+            <div class="center-align">
+                <img src="" alt="Profile" class="profile-avatar">
+                <h3 id="profNameTitle">Cargando...</h3>
+                <h5 id="profRoleTitle" class="text-muted" style="text-transform: uppercase; font-size: 1.2rem;"></h5>
+            </div>
+            
+            <div class="divider"></div>
+            <br>
+            
+            <form id="profileForm">
+                <div class="row">
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">person</i>
+                        <input id="name" type="text" required>
+                        <label for="name" class="active">Nombre</label>
+                    </div>
+                    <div class="input-field col s12 m6">
+                        <input id="lastName" type="text" required>
+                        <label for="lastName" class="active">Apellido</label>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">phone</i>
+                        <input id="phoneNumber" type="text" required>
+                        <label for="phoneNumber" class="active">Teléfono</label>
+                    </div>
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">calendar_today</i>
+                        <input id="birthdate" type="date" required>
+                        <label for="birthdate" class="active">Fecha de Nacimiento</label>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">location_on</i>
+                        <input id="address" type="text">
+                        <label for="address" class="active">Dirección</label>
+                    </div>
+                    <div class="input-field col s12 m6">
+                        <i class="material-icons prefix">link</i>
+                        <input id="url_profile" type="url">
+                        <label for="url_profile" class="active">URL de Foto de Perfil</label>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">email</i>
+                        <input id="email" type="email" disabled>
+                        <label for="email" class="active">Correo Electrónico (No editable)</label>
+                    </div>
+                </div>
+
+                <div class="center-align">
+                    <a href="javascript:history.back()" class="btn secondary-btn" style="margin-right: 10px;">Regresar</a>
+                    <button class="btn corporate-btn" type="submit">Guardar Cambios
+                        <i class="material-icons right">save</i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const response = await fetch('/api/users/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.status === 401 || response.status === 403) {
+            sessionStorage.clear();
+            window.location.href = '/signIn';
+            return;
+        }
+
+        const user = await response.json();
+        
+        // Formatear fecha a YYYY-MM-DD
+        let bdate = '';
+        if (user.birthdate) {
+            bdate = new Date(user.birthdate).toISOString().split('T')[0];
+        }
+
+        document.getElementById('profNameTitle').innerText = `${user.name} ${user.lastName || ''}`;
+        document.getElementById('profRoleTitle').innerText = user.roles.join(', ');
+        
+        const defaultAvatar = 'https://ui-avatars.com/api/?name=' + user.name + '&background=1565C0&color=fff&size=120';
+        document.querySelector('.profile-avatar').src = user.url_profile || defaultAvatar;
+        
+        document.getElementById('name').value = user.name || '';
+        document.getElementById('lastName').value = user.lastName || '';
+        document.getElementById('phoneNumber').value = user.phoneNumber || '';
+        document.getElementById('birthdate').value = bdate;
+        document.getElementById('address').value = user.address || '';
+        document.getElementById('url_profile').value = user.url_profile || '';
+        document.getElementById('email').value = user.email || '';
+        
+        M.updateTextFields(); // Re-inicia labels de materialize
+    } catch(err) {
+        console.error(err);
+    }
+});
+
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const payload = {
+        name: document.getElementById('name').value,
+        lastName: document.getElementById('lastName').value,
+        phoneNumber: document.getElementById('phoneNumber').value,
+        birthdate: document.getElementById('birthdate').value,
+        address: document.getElementById('address').value,
+        url_profile: document.getElementById('url_profile').value
+    };
+
+    try {
+        const response = await fetch('/api/users/me', {
+            method: 'PUT',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (response.ok) {
+            Swal.fire('Guardado', 'Tus datos se actualizaron correctamente', 'success').then(() => {
+                location.reload();
+            });
+        } else {
+            Swal.fire('Atención', data.message || 'Error al guardar', 'warning');
+        }
+    } catch(err) {
+        Swal.fire('Error', 'Hubo un problema con la conexión', 'error');
+    }
+});
+</script>
+
+<%- include('partials/footer') %>
