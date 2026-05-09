@@ -1,0 +1,21 @@
+name: Deploy API to Render
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Render Deploy Hook
+        env:
+          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$deploy_url" ]; then
+            echo "Error: RENDER_DEPLOY_HOOK_URL is not set."
+            exit 1
+          fi
+          curl -X POST "$deploy_url"
